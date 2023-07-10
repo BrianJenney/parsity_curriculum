@@ -1,295 +1,184 @@
-React Router is a collection of navigational components that work with a React App to allow navigation between pages. It's one of the most commonly used libraries in React for handling routing.
+Next.js is a popular React.js framework and currently recommended by the React team for scaffolding new apps. It has a myriad of features, such as static site generation and server-side rendering, as well as built-in routing.
 
-The most recent version of React Router is version 6. You're just as likely to encounter version 5 and there are some similarities and differences we will explore with each of their usage.
+Next.js routing system operates based on the file structure. The essence of the routing process is basically mapping the URL to a `page.js` file nested within the `app` folder at your project's root. To use the routing system correctly, you'll need to understand how the way you name your files and folders informs the url structure.
 
-## Part 1: Overview of React Router
+## Part 1: Overview of Next.js Routing
 
-### Version 5:
+To create a route in Next.js, you'll create a new `page.js` file in the `app` folder. Next.js looks for `page.js` files within a folder to understand what view to show to a user at a certain route.
 
-In version 5, the fundamental components that you will interact with are:
-
--   `<BrowserRouter />`: A `<Router>` that uses the HTML5 history API (pushState, replaceState and the popstate event) to keep your UI in sync with the URL. It's basically sits on top of the native browser history API and gives us the tools to interact with it in our React app.
-
--   `<Route />`: Its most basic responsibility is to render some UI when a location matches the route’s path.
-
--   `<Link />`: Provides declarative, accessible navigation around your application. This should be used in place of an `<a>` tag in order to prevent a full reload of the page (unless that's what you want). A `<Link />` component navigates between routes without reloading the entire app so you can maintain local state.
-
--   `<Switch />`: Renders the first `<Route>` or `<Redirect>` that matches the location. It acts as a filter for the url path requested. In the example below, if a user entered `http://localhost:3000/about` they would see the `<About>` component. Going to `http://localhost:3000/unknown_route` would result in a blank page or error since there is no route path that matches `unknown_route`.
-
-An example of how to use these components:
+The `page.js` file at the root of your `app` folder is what a user will see when they visit the root of your site at `http://localhost:3000/`
 
 ```jsx
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-
-function App() {
-	return (
-		<Router>
-			<div>
-				<nav>
-					<ul>
-						<li>
-							<Link to='/'>Home</Link>
-						</li>
-						<li>
-							<Link to='/about'>About</Link>
-						</li>
-					</ul>
-				</nav>
-
-				<Switch>
-					<Route path='/about'>
-						<About />
-					</Route>
-					<Route path='/'>
-						<Home />
-					</Route>
-				</Switch>
-			</div>
-		</Router>
-	);
-}
+// app/page.js
 
 function Home() {
 	return <h2>Home</h2>;
 }
+export default Home;
+```
 
+To create another route at http://localhost:3000/about you would need to create an `about` folder with a `page.js` file. The folder name determines the url path:
+
+```jsx
+// app/about/page.js
 function About() {
 	return <h2>About</h2>;
 }
+export default About;
 ```
 
-<div style="position: relative; padding-bottom: 64.98194945848375%; height: 0;"><iframe src="https://www.loom.com/embed/3682020e20db48eabad29aff4a3cb68c?sid=75aff5f1-3b45-408b-89c2-1515c13cca11" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
-
-### Version 6:
-
-In version 6, the API has changed a bit, but the concept is still the same. Here are some equivalent components in version 6:
-
--   `<BrowserRouter />` is now `<Routes />`: This component is used to wrap the entire application and provide routing functionality.
-
--   `<Route />` remains `<Route />`: However, it now takes a `path` and an `element` prop. The `element` prop is expected to be a React element (i.e., `<Component />`), not a component type (i.e., `Component`).
-
--   `<Link />` remains `<Link />`: However, the `to` prop is now `href`.
-
--   `<Switch />` is replaced with `<Routes />`: It's used to group `<Route />` components.
-
-Here's the same example as above, but using version 6 syntax:
+To link pages add the following use the `Link` component from `next/link` and update your `layout.js` file:
 
 ```jsx
-import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
+import Link from 'next/link';
 
-function App() {
+export default function RootLayout({ children }) {
 	return (
-		<Router>
-			<div>
+		<html lang='en'>
+			<body>
 				<nav>
 					<ul>
 						<li>
-							<Link to='/'>Home</Link>
+							<Link href='/'>Home</Link>
 						</li>
 						<li>
-							<Link to='/about'>About</Link>
+							<Link href='/about'>About</Link>
 						</li>
 					</ul>
 				</nav>
-
-				<Routes>
-					<Route path='/about' element={<About />} />
-					<Route path='/' element={<Home />} />
-				</Routes>
-			</div>
-		</Router>
-	);
-}
-
-function Home() {
-	return <h2>Home</h2>;
-}
-
-function About() {
-	return <h2>About</h2>;
-}
-```
-
-## Part 2: Route Parameters
-
-Another important aspect of React Router is route parameters, which allow you to capture values from the URL.
-
-In version 5, you can define a route parameter by using a colon (`:`) followed by the name of the parameter inside the `path` prop of the `Route` component. You can then access this parameter via the `match.params` property passed to your component.
-
-You may be wondering how props like `match` are passed as props. This is done automatically by React Router 😉.
-
-```jsx
-<Route path='/user/:id' component={User} />;
-
-// User Component
-function User({ match }) {
-	return <h2>User Id: {match.params.id}</h2>;
-}
-```
-
-In version 6, you define a route parameter in the same way, but access it a bit differently. You use the `useParams` hook from `react-router-dom` to access the route parameters and there is no need to access it via `props`.
-
-```jsx
-<Route path='/user/:id' element={<User />} />;
-
-// User Component
-import { useParams } from 'react-router-dom';
-
-function User() {
-	let { id } = useParams();
-	return <h2>User Id: {id}</h2>;
-}
-```
-
-## Part 3: Navigation
-
-For programmatically navigating around your application, React Router provides a `history` object. Sometimes you may want to navigate a user to a page after completing an action like signing into your app. Using a `<Link>` doesn't make sense here since it's a UI element. Navigating manually (or programatically) means you should use the `history` object.
-
-In version 5, you can use the `history.push` method to navigate to a different path. This `history` object is available in the props of any component rendered by a `Route`.
-
-```jsx
-function Home({ history }) {
-	return (
-		<div>
-			<h2>Home</h2>
-			<button onClick={() => history.push('/about')}>Go to About</button>
-		</div>
+				{children}
+			</body>
+		</html>
 	);
 }
 ```
 
-In version 6, the `history` object is replaced by a few hooks:
+The `layout.js` component is shared across page and is a good choice for navigation or footers to be placed.
 
--   `useNavigate` for navigation
--   `useLocation` to access the current location
--   `useHistory` to access the navigation history
+## Part 2: Dynamic Routes
 
-Here's how you would navigate in version 6:
+A dynamic route is a route that is determined at runtime or while the application is running. Instead of being hardcoded into the application, these routes are often based on user interaction or data from a database. In Next.js, dynamic routes are represented using square brackets `[id]` in the file or directory name.
 
-```jsx
-import { useNavigate } from 'react-router-dom';
+For example, if you have a blog and want to create a unique route for each blog post, instead of creating a static route for each post, you could create a dynamic route like `app/posts/[id]/page.js`.
 
-function Home() {
-	const navigate = useNavigate();
+Here, [id] is a placeholder for the actual ID of each post. So when a user navigates to /posts/1, Next.js will render the page at app/posts/[id]/page.js and pass the value 1 as a parameter that can be accessed within the page. The specific ID (e.g., 1, 2, 3, etc.) is determined dynamically based on the URL at runtime. This allows for a flexible and efficient routing mechanism.
 
-	return (
-		<div>
-			<h2>Home</h2>
-			<button onClick={() => navigate('/about')}>Go to About</button>
-		</div>
-	);
-}
-```
+## Part 3: Accessing Params from Dynamic Routes
 
-<div style="position: relative; padding-bottom: 64.98194945848375%; height: 0;"><iframe src="https://www.loom.com/embed/5a54a1bfa12f4700aa398fae4a88fe6a?sid=a8d6bf30-6dc3-4286-8c07-0101b767fe52" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+Accessing route parameters is essential for many different use cases in web development. Here are a few reasons why you might want to do so:
 
-## Part 4: Why You Might Need to Access the URL in an App
+1. **Dynamic content loading**: In most applications, you'll want to fetch and display data that corresponds to specific identifiers. For example, in a blog, you might want to display a specific post based on its unique ID, which is included in the URL as a route parameter. This dynamic data loading is essential for displaying user profiles, product details, individual posts, and much more.
 
-It's common for web applications to use pieces of a URL to understand what content should be rendered.
+2. **State restoration**: In some cases, you may want to restore the user's application state based on the URL. The URL can act as a kind of "save state" that includes all the necessary parameters to recreate a certain view. This can be helpful in scenarios like complex forms, filters in data visualization or search applications where the state of filters can be reflected in the URL.
 
-Let's break down a couple of key reasons why developers might need to access these:
+3. **Analytics**: When the app navigation depends on route parameters, it gives you the ability to track user interactions more accurately. For instance, you can gather insights about user behavior, such as which product or blog post is most visited, by examining the route parameters.
 
-1. **Dynamic Content Loading**: By using route parameters or query strings, you can load content dynamically based on the URL. This is often used in e-commerce sites, blogs, or any site that has a lot of categorized content. For instance, you might have a URL like `www.example.com/product/:id` where `:id` is the ID of a product. When a user navigates to this URL, your React application could fetch the specific product's data and display it.
+4. **Sharing and Bookmarking**: When specific content (like a product page, an article, a specific view of data, etc.) has a unique URL (made possible by route parameters), users can easily share or bookmark that URL. When the URL is revisited, the route parameters can be used to regenerate that specific content.
 
-2. **Filtering and Sorting**: Query parameters are a great way to handle filtering and sorting of data. For example, in an e-commerce site, you might filter products by category or sort them by price. This could result in a URL like `www.example.com/products?category=electronics&sort=price-asc`. By reading these query parameters, your React application can then display the appropriate products.
+Next.js provides a `useRouter` hook that allows you to access the route parameters.
 
-3. **Preserving Application State**: Sometimes you want to preserve certain application states in the URL so that when the user refreshes the page or shares the URL, the application will render the same state. An example could be a map application where the current coordinates and zoom level are stored in the URL.
+The name you give to your dynamic route file or directory in the app folder corresponds to the key you'll use to access the route parameter from router.query object.
 
-Now let's look at some examples of how you might accomplish these in React with React Router.
-
-## Accessing Params
-
-In a blog application, you might want to display a specific post based on the URL. Here's how you might do it in both React Router v5 and v6:
-
-### Version 5:
+For example, let's say you have a file named app/posts/[id]/page.js. The [id] part of the filename is a placeholder for the route parameter, and you can access its actual value from within your component like so:
 
 ```jsx
-<Route path="/post/:id" component={Post} />
-
-// Post Component
-function Post({ match }) {
-  const postId = match.params.id;
-
-  // Fetching data based on postId
-  useEffect(() => {
-    fetch(`/api/posts/${postId}`)
-      .then(response => response.json())
-      .then(data => /* do something with the data */);
-  }, [postId]);
-
-  // ...
-}
-```
-
-### Version 6:
-
-```jsx
-<Route path="/post/:id" element={<Post />} />
-
-// Post Component
-import { useParams } from "react-router-dom";
+// app/posts/[id]/page.js
+'use client';
+import { useRouter } from 'next/router';
 
 function Post() {
-  const { id: postId } = useParams();
+	const router = useRouter();
+	const { id } = router.query;
 
-  // Fetching data based on postId
-  useEffect(() => {
-    fetch(`/api/posts/${postId}`)
-      .then(response => response.json())
-      .then(data => /* do something with the data */);
-  }, [postId]);
+	return <h2>Post Id: {id}</h2>;
+}
 
-  // ...
+export default Post;
+```
+
+The `[id]/page.js` file corresponds to any route in the `/posts/<something>` format, granting access to `<something>` as `router.query.id` within your component.
+
+## Part 4: Navigation
+
+You can also use the `useRouter` hook for programmatically navigating your application.
+
+Sometimes you will want to navigate a user to another page without using a `<Link>`. For example, perhaps after they sign in you want to route them to your main page.
+
+There are several reasons why you might want to implement this:
+
+1. **Form Submission**: After a user submits a form, it's common to redirect them to another page. For example, upon successful submission of a contact form, you might want to navigate the user to a "Thank You" page.
+
+2. **User Workflows**: In multi-step processes (like a multi-page form, a quiz, or a checkout process), you might want to guide the user through specific steps in a sequence. Programmatic navigation lets you control this flow.
+
+3. **Interactions Resulting in Navigation**: Certain user interactions might require navigation to a new page. For example, clicking on a notification in a list might navigate to the related item or activity.
+
+4. **Error Handling**: In case of an error or an exception, you might want to programmatically navigate the user to a dedicated error page or a recovery flow.
+
+In all these cases, having control over your navigation programmatically can help you build a more robust and user-friendly application.
+
+Here's an example of using `useRouter` within Next.js
+
+```jsx
+// app/page.js
+'use client';
+import { useRouter } from 'next/router';
+
+function Home() {
+	const router = useRouter();
+
+	return (
+		<div>
+			<h2>Home</h2>
+			<button onClick={() => router.push('/about')}>Go to About</button>
+		</div>
+	);
 }
 ```
 
-## With a Query String
+## Part 5: Accessing the URL in an App
 
-For example, to handle sorting of posts in a blog application, you might use a query parameter. Here's how you might do it with a url like `www.yourblog.com/posts?sort=recent`:
+You've no doubt seen query parameters in urls you've visited but perhaps you didn't know what they were used for.
 
-### Version 5:
+They are appended to the end of a URL after a '?' character and are separated by '&' characters.
 
-```jsx
-// Assuming you are in a component rendered by a Route
-function Posts({ location }) {
-  const query = new URLSearchParams(location.search);
-  const sort = query.get('sort');
+For example, in the URL `https://example.com/search?q=query&sort=desc`, `q` and `sort` are the query parameters.
 
-  // Fetching data based on sort
-  useEffect(() => {
-    fetch(`/api/posts?sort=${sort}`)
-      .then(response => response.json())
-      .then(data => /* do something with the data */);
-  }, [sort]);
+Here are some common reasons to use query parameters in your application:
 
-  // ...
-}
-```
+1. **Filtering and Sorting**: Query parameters are often used in APIs and web applications to filter and sort data. For example, an e-commerce website might use query parameters to filter products by category, sort them by price, and paginate the results.
 
-### Version 6:
+2. **Tracking**: Query parameters can be used to track where traffic comes from. For example, if you're running an ad campaign, you might add a query parameter to the URL to identify which ads are effective.
+
+3. **Stateful Links**: You might use query parameters to store a small amount of state in the URL. For example, a map application might store the current zoom level and map center in the URL so that when the user shares the URL, the recipient sees the same view.
+
+4. **Conditional Rendering**: Query parameters can control what to display on a page. For instance, you can show different content based on a query parameter's value, making a page's content dynamic without needing to create multiple separate pages.
+
+While query parameters are very useful, it's important to remember that they're visible to everyone who can see the URL. This means they're not suitable for sensitive data like passwords or other private information. Additionally, because users can easily modify query parameters, your application should handle unexpected values gracefully.
+
+Within Next.js, you can also access query parameters and the current path via the `useRouter` hook.
 
 ```jsx
-// Assuming you are in a component rendered by a Route
-import { useLocation } from "react-router-dom";
+// app/posts/page.js
+'use client';
+import { useRouter } from 'next/router';
 
 function Posts() {
-  const { search } = useLocation();
-  const query = new URLSearchParams(search);
-  const sort = query.get('sort');
+    const router = useRouter();
+    const { sort } = router.query;
 
-  // Fetching data based on sort
-  useEffect(() => {
-    fetch(`/api/posts?sort=${sort}`)
-      .then
+    // Fetching data based on sort
+    useEffect(() => {
+        fetch(`/api/posts?sort=${sort}`)
+            .then(response => response.json())
+            .then(data => /* do something with the data */);
+    }, [sort]);
 
-(response => response.json())
-      .then(data => /* do something with the data */);
-  }, [sort]);
-
-  // ...
+    // ...
 }
+
+export default Posts;
 ```
 
-In the examples above, we're accessing URL parameters or the query string and then fetching data based on these values. This allows us to display content specific to each user's navigation, providing a more personalized and dynamic user experience.
+In this scenario, we access the query string and fetch data based on these values. This approach allows us to display content specific to each user's navigation, thereby creating a more dynamic and personalized user experience.
 
-Remember that both route parameters and query strings are part of the URL and thus are visible to users. Make sure not to put sensitive information in them. Also, because users can manually change these values, ensure your application can handle unexpected values gracefully.
+As with React Router, bear in mind that query strings are part of the URL and are visible to users. Consequently, ensure not to include sensitive information in them. Furthermore, users can manually alter these values, so make sure your application can gracefully handle unexpected values.
